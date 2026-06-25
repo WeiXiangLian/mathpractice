@@ -11,11 +11,9 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="正負數練習">
-<!-- 手機主畫面圖示 (內嵌 SVG,藍底白色 ±) -->
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Crect width='180' height='180' rx='40' fill='%234f7cff'/%3E%3Ctext x='90' y='118' font-size='100' font-weight='bold' text-anchor='middle' fill='white' font-family='sans-serif'%3E%C2%B1%3C/text%3E%3C/svg%3E">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='64' height='64' rx='14' fill='%234f7cff'/%3E%3Ctext x='32' y='44' font-size='38' font-weight='bold' text-anchor='middle' fill='white' font-family='sans-serif'%3E%C2%B1%3C/text%3E%3C/svg%3E">
 <style>
-  /* ===== 基本設定 ===== */
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   :root{
     --bg:#f3f6fb; --card:#ffffff; --ink:#1f2a44; --muted:#7b8794;
@@ -30,7 +28,7 @@
     display:flex; justify-content:center; align-items:flex-start;
     min-height:100%; padding:16px;
   }
-  .app{width:100%; max-width:440px;}
+  .app{width:100%; max-width:440px; position:relative;}
   .card{
     background:var(--card); border-radius:20px; box-shadow:var(--shadow);
     padding:22px; margin-bottom:14px;
@@ -38,8 +36,9 @@
   h1{font-size:22px; margin:0 0 4px;}
   .sub{color:var(--muted); font-size:14px; margin:0;}
   .hidden{display:none !important;}
+  .divider{display:flex; align-items:center; gap:10px; color:var(--muted); font-size:12px; margin:18px 0 4px;}
+  .divider::before,.divider::after{content:""; flex:1; height:1px; background:#e6ebf5;}
 
-  /* ===== 按鈕 ===== */
   .btn{
     display:block; width:100%; border:none; border-radius:14px;
     padding:16px; font-size:18px; font-weight:700; cursor:pointer;
@@ -50,32 +49,62 @@
   .btn-primary:active{background:var(--primary-d);}
   .btn-ghost{background:#eef2fb; color:var(--ink);}
 
-  /* ===== 首頁模式卡 ===== */
   .mode{
     text-align:left; display:flex; align-items:center; gap:14px;
     background:#eef2fb; border-radius:16px; padding:18px; margin-top:14px;
     cursor:pointer; border:2px solid transparent; transition:.15s;
   }
   .mode:active{transform:scale(.99);}
+  .mode.accent{background:#eaf0ff; border-color:#cfdcff;}
   .mode .emoji{font-size:30px;}
   .mode h3{margin:0; font-size:18px;}
   .mode p{margin:2px 0 0; font-size:13px; color:var(--muted);}
 
-  /* ===== 進行中頂列 ===== */
-  .topbar{display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;}
+  /* 首頁底部:統計 + 靜音 + 徽章 */
+  .home-foot{display:flex; align-items:center; gap:14px; margin-top:18px; font-size:14px; color:var(--muted);}
+  .home-foot b{color:var(--ink);}
+  .home-foot .mute{margin-left:auto; border:none; background:#eef2fb; border-radius:10px; padding:8px 12px; font-size:16px; cursor:pointer;}
+  .badges{display:flex; flex-wrap:wrap; gap:8px; margin-top:12px;}
+  .badge{display:flex; flex-direction:column; align-items:center; width:62px; text-align:center;}
+  .badge .ic{width:46px; height:46px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:24px; background:#eef2fb;}
+  .badge.on .ic{background:#fff3d6;}
+  .badge.off{opacity:.35; filter:grayscale(1);}
+  .badge .nm{font-size:11px; color:var(--muted); margin-top:3px; line-height:1.2;}
+
+  /* 題型選單 */
+  .seg{display:flex; gap:8px; background:#eef2fb; padding:5px; border-radius:12px; margin:6px 0 16px;}
+  .seg-btn{flex:1; border:none; background:transparent; padding:10px; border-radius:9px; font-size:15px; font-weight:700; color:var(--muted); cursor:pointer;}
+  .seg-btn.active{background:#fff; color:var(--ink); box-shadow:0 2px 6px rgba(40,60,120,.12);}
+  .type-item{display:flex; justify-content:space-between; align-items:center; width:100%; text-align:left; border:none; background:#eef2fb; border-radius:12px; padding:13px 15px; margin-bottom:9px; cursor:pointer; transition:.12s;}
+  .type-item:active{transform:scale(.99);}
+  .type-item .t-label{font-weight:700; font-size:15px;}
+  .type-item .t-ex{color:var(--muted); font-size:13px; font-family:ui-monospace,monospace;}
+
+  .topbar{display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;}
   .pill{background:#eef2fb; border-radius:999px; padding:8px 14px; font-size:14px; font-weight:700;}
   .pill .lab{color:var(--muted); font-weight:500; margin-right:4px;}
-  .progress{height:8px; background:#e6ebf5; border-radius:99px; overflow:hidden; margin-bottom:18px;}
+  .progress{height:8px; background:#e6ebf5; border-radius:99px; overflow:hidden; margin-bottom:10px;}
   .progress > i{display:block; height:100%; background:var(--primary); width:0; transition:width .3s;}
 
-  /* ===== 題目 ===== */
+  /* 計時 + 連對列 */
+  .trow{display:flex; align-items:center; gap:10px; margin-bottom:12px;}
+  .streakChip{background:#fff1e6; color:#e8702a; border-radius:999px; padding:5px 11px; font-size:13px; font-weight:800; white-space:nowrap;}
+  .streakChip.bump{animation:bump .3s;}
+  @keyframes bump{0%{transform:scale(1)}40%{transform:scale(1.25)}100%{transform:scale(1)}}
+  .tbar-wrap{flex:1; height:9px; background:#e6ebf5; border-radius:99px; overflow:hidden;}
+  .tbar-wrap > i{display:block; height:100%; width:100%; background:var(--good); border-radius:99px;}
+  .tbar-wrap.low > i{background:var(--bad);}
+  .tsec{font-size:14px; font-weight:800; min-width:34px; text-align:right; color:var(--ink);}
+  .tsec.low{color:var(--bad);}
+
+  .type-label{text-align:center; font-size:13px; font-weight:700; color:var(--primary); background:#eef2fb; border-radius:99px; padding:5px 12px; width:fit-content; margin:0 auto 6px;}
+
   .question{
     text-align:center; font-size:44px; font-weight:800; letter-spacing:1px;
-    padding:16px 8px; margin:2px 0 8px;
+    padding:12px 8px; margin:2px 0 8px;
   }
   .question .blank{color:var(--primary);}
 
-  /* ===== 選擇題選項 ===== */
   .choices{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
   .choice{
     border:none; background:#eef2fb; color:var(--ink);
@@ -87,7 +116,6 @@
   .choice.wrong{background:var(--bad); color:#fff;}
   .choice:disabled{cursor:default;}
 
-  /* ===== 挑戰模式輸入 ===== */
   .answer-box{
     text-align:center; font-size:40px; font-weight:800; min-height:56px;
     border-bottom:3px solid #d8e0f0; margin:0 8px 14px; padding-bottom:6px;
@@ -100,16 +128,15 @@
     font-size:24px; font-weight:800; cursor:pointer;
   }
   .key:active{transform:scale(.96);}
-  .key.act{background:#dde6ff;}
   .key-sign{color:var(--primary);}
   .key-del{color:var(--bad);}
 
-  /* ===== 回饋 ===== */
   .feedback{text-align:center; font-size:18px; font-weight:700; min-height:26px; margin:14px 0 2px;}
   .feedback.good{color:var(--good);}
   .feedback.bad{color:var(--bad);}
+  .feedback .gain{color:var(--warn); margin-left:4px;}
+  .gain-info{text-align:center; font-size:13px; color:var(--muted); min-height:8px;}
   .explain{min-height:8px;}
-  /* 答錯時的教學解說框 */
   .teach{
     text-align:left; background:#fff8e8; border:1px solid #f5e2b8;
     border-radius:14px; padding:14px 16px; margin-top:8px;
@@ -118,18 +145,27 @@
   .teach-title{font-weight:800; margin-bottom:4px; color:#c08a00;}
   .teach p{margin:6px 0;}
   .teach b{color:var(--ink);}
+  .teach-diag{background:#fdecee; border:1px solid #f5c2c8; border-radius:10px; padding:9px 11px; color:#c0392b; font-weight:700; margin:4px 0 8px !important;}
   .teach-tip{background:#eef6ff; border-radius:10px; padding:9px 11px; color:#33506e; margin-top:10px !important;}
 
-  /* ===== 結算 ===== */
   .result-big{text-align:center; font-size:58px; font-weight:800; margin:8px 0;}
   .stat-row{display:flex; justify-content:space-around; margin:18px 0;}
   .stat{text-align:center;}
   .stat b{font-size:26px; display:block;}
   .stat span{color:var(--muted); font-size:13px;}
+  .new-badges{background:#fff8e8; border:1px solid #f5e2b8; border-radius:14px; padding:12px; margin-top:8px;}
+  .new-badges h4{margin:0 0 8px; color:#c08a00; font-size:14px;}
+
+  /* 徽章提示 toast */
+  .toast-wrap{position:fixed; top:14px; left:50%; transform:translateX(-50%); z-index:50; display:flex; flex-direction:column; gap:8px; align-items:center; width:100%; max-width:420px; pointer-events:none;}
+  .toast{background:#1f2a44; color:#fff; padding:10px 16px; border-radius:12px; font-size:14px; font-weight:700; box-shadow:0 6px 18px rgba(0,0,0,.25); animation:toastIn .3s ease;}
+  @keyframes toastIn{from{opacity:0; transform:translateY(-8px)}to{opacity:1; transform:none}}
 </style>
 </head>
 <body>
 <div class="app">
+
+  <div class="toast-wrap" id="toastWrap"></div>
 
   <!-- ====== 首頁 ====== -->
   <section id="home" class="card">
@@ -140,7 +176,7 @@
       <div class="emoji">🟦</div>
       <div>
         <h3>選擇模式</h3>
-        <p>看題目,從四個答案裡點正確的</p>
+        <p>看題目,從四個答案裡點正確的(全部題型混合)</p>
       </div>
     </div>
 
@@ -148,9 +184,41 @@
       <div class="emoji">🏆</div>
       <div>
         <h3>挑戰關</h3>
-        <p>自己用鍵盤算出答案打進去</p>
+        <p>自己用鍵盤算出答案打進去(全部題型混合)</p>
       </div>
     </div>
+
+    <div class="divider">或者</div>
+
+    <div class="mode accent" onclick="openTypePicker()">
+      <div class="emoji">🎯</div>
+      <div>
+        <h3>挑題型練習</h3>
+        <p>挑一種容易錯的題型,集中加強</p>
+      </div>
+    </div>
+
+    <div class="home-foot">
+      <span>最佳 <b id="hsBest">0</b></span>
+      <span>累積答對 <b id="hsTotal">0</b></span>
+      <button class="mute" id="muteBtn" onclick="toggleMute()">🔊</button>
+    </div>
+    <div class="badges" id="homeBadges"></div>
+  </section>
+
+  <!-- ====== 題型選單 ====== -->
+  <section id="typePicker" class="card hidden">
+    <div class="topbar">
+      <button class="pill" style="border:none;cursor:pointer" onclick="goHome()">← 返回</button>
+      <h1 style="font-size:18px">挑題型練習 🎯</h1>
+      <span style="width:48px"></span>
+    </div>
+    <p class="sub" style="margin-bottom:6px">先選作答方式,再點要練的題型</p>
+    <div class="seg">
+      <button id="segChoice" class="seg-btn active" onclick="setPracticeMode('choice')">選擇模式</button>
+      <button id="segInput" class="seg-btn" onclick="setPracticeMode('input')">挑戰關</button>
+    </div>
+    <div id="typeList"></div>
   </section>
 
   <!-- ====== 遊戲中 ====== -->
@@ -158,11 +226,17 @@
     <div class="topbar">
       <button class="pill" style="border:none;cursor:pointer" onclick="goHome()">← 返回</button>
       <div class="pill"><span class="lab">第</span><span id="qNum">1</span>/<span id="qTotal">10</span></div>
-      <div class="pill"><span class="lab">分數</span><span id="score">0</span></div>
+      <div class="pill"><span class="lab">分</span><span id="score">0</span></div>
     </div>
     <div class="progress"><i id="bar"></i></div>
+    <div class="trow">
+      <div class="streakChip hidden" id="streakPill">🔥 <b id="streakNum">0</b> 連對</div>
+      <div class="tbar-wrap" id="timerWrap"><i id="timerBar"></i></div>
+      <div class="tsec" id="timerSec">15</div>
+    </div>
+    <div id="typeLabel" class="type-label hidden"></div>
 
-    <div class="question" id="question">- 7 + 3 = <span class="blank">?</span></div>
+    <div class="question" id="question">(-7) + 3 = <span class="blank">?</span></div>
 
     <!-- 選擇題 -->
     <div id="choiceArea" class="choices"></div>
@@ -175,6 +249,7 @@
     </div>
 
     <div class="feedback" id="feedback"></div>
+    <div class="gain-info" id="gainInfo"></div>
     <div class="explain" id="explain"></div>
     <button class="btn btn-ghost hidden" id="nextBtn" onclick="nextQuestion()">下一題 →</button>
   </section>
@@ -183,218 +258,494 @@
   <section id="result" class="card hidden">
     <h1 style="text-align:center">完成!</h1>
     <div class="result-big" id="resultEmoji">🎉</div>
+    <div id="resultType" class="type-label hidden"></div>
     <div class="stat-row">
       <div class="stat"><b id="rScore">0</b><span>得分</span></div>
       <div class="stat"><b id="rCorrect">0</b><span>答對題數</span></div>
       <div class="stat"><b id="rAcc">0%</b><span>正確率</span></div>
     </div>
-    <button class="btn btn-primary" onclick="startGame(currentMode)">再玩一次</button>
+    <div class="new-badges hidden" id="newBadges"></div>
+    <button class="btn btn-primary" onclick="replay()">再玩一次</button>
     <button class="btn btn-ghost" onclick="goHome()">回首頁</button>
   </section>
 
 </div>
 
 <script>
-/* =========================================================
-   設定區 (之後要調難度、題數就改這裡)
-========================================================= */
-const CONFIG = {
-  total: 10,        // 每回合題數
-  min: -20,         // 數字最小值
-  max: 20,          // 數字最大值
-  scorePerQ: 10,    // 每題分數
-};
+/* ===== 設定 ===== */
+var CONFIG = { total: 10, min: -20, max: 20, base: 10, qtimeMs: 15000 };
 
-/* =========================================================
-   狀態
-========================================================= */
-let currentMode = 'choice';
-let qIndex = 0;       // 第幾題 (0-based)
-let score = 0;
-let correctCount = 0;
-let answered = false; // 本題是否已作答
-let cur = null;       // 目前題目 {a, op, b, answer}
-let inputVal = '';    // 挑戰模式輸入字串
-
-/* =========================================================
-   出題:隨機正負加減
-========================================================= */
-function randInt(min, max){ return Math.floor(Math.random()*(max-min+1))+min; }
-
-function makeQuestion(){
-  const a = randInt(CONFIG.min, CONFIG.max);
-  const b = randInt(CONFIG.min, CONFIG.max);
-  const op = Math.random() < 0.5 ? '+' : '-';
-  const answer = op === '+' ? a + b : a - b;
-  return { a, op, b, answer };
+/* ===== 題型分類 ===== */
+var CATS = [
+ {id:'add_pp',      label:'正 + 正',                 ex:'5 + 8'},
+ {id:'add_nn',      label:'負 + 負',                 ex:'(−5) + (−8)'},
+ {id:'add_posbig',  label:'異號・正的絕對值大',       ex:'9 + (−4)'},
+ {id:'add_negbig',  label:'異號・負的絕對值大',       ex:'4 + (−9)'},
+ {id:'sub_pp_big',  label:'正 − 正(大減小)',         ex:'8 − 3'},
+ {id:'sub_pp_small',label:'正 − 正(小減大)',         ex:'3 − 8'},
+ {id:'sub_pn',      label:'正 − 負',                 ex:'5 − (−3)'},
+ {id:'sub_np',      label:'負 − 正',                 ex:'(−5) − 3'},
+ {id:'sub_nn_big',  label:'負 − 負(被減數絕對值大)', ex:'(−8) − (−3)'},
+ {id:'sub_nn_small',label:'負 − 負(被減數絕對值小)', ex:'(−3) − (−8)'}
+];
+function catLabel(id){ for(var i=0;i<CATS.length;i++){ if(CATS[i].id===id) return CATS[i].label; } return ''; }
+function categorize(a, op, b){
+  var aa=Math.abs(a), ab=Math.abs(b);
+  if(op === '+'){
+    if(a>0 && b>0) return 'add_pp';
+    if(a<0 && b<0) return 'add_nn';
+    if(aa>ab) return a>0 ? 'add_posbig' : 'add_negbig';
+    if(ab>aa) return b>0 ? 'add_posbig' : 'add_negbig';
+    return 'add_zero';
+  } else {
+    if(a>0 && b>0) return aa>ab ? 'sub_pp_big' : (ab>aa ? 'sub_pp_small' : 'sub_zero');
+    if(a>0 && b<0) return 'sub_pn';
+    if(a<0 && b>0) return 'sub_np';
+    if(a<0 && b<0) return aa>ab ? 'sub_nn_big' : (ab>aa ? 'sub_nn_small' : 'sub_zero');
+    return 'sub_zero';
+  }
 }
 
-// 把負數顯示成 (-7) 比較清楚;正數就直接顯示
-function fmt(n){ return n < 0 ? '('+n+')' : ''+n; }
+/* ===== 徽章定義 ===== */
+var BADGES = [
+ {id:'first_clear', ic:'🎉', nm:'初次完成'},
+ {id:'perfect',     ic:'💯', nm:'全對達人'},
+ {id:'streak5',     ic:'🔥', nm:'五連對'},
+ {id:'streak10',    ic:'⚡', nm:'十連對'},
+ {id:'speedy',      ic:'🚀', nm:'閃電作答'},
+ {id:'century',     ic:'🌟', nm:'百題達成'}
+];
+function badgeName(id){ for(var i=0;i<BADGES.length;i++){ if(BADGES[i].id===id) return BADGES[i].nm; } return id; }
 
+/* ===== 本機儲存 ===== */
+function loadStore(){
+  try{
+    var s = JSON.parse(localStorage.getItem('mathapp_v1'));
+    if(s) return { badges:s.badges||{}, totalCorrect:s.totalCorrect||0, bestScore:s.bestScore||0, longestStreak:s.longestStreak||0, muted:!!s.muted };
+  }catch(e){}
+  return { badges:{}, totalCorrect:0, bestScore:0, longestStreak:0, muted:false };
+}
+function saveStore(){ try{ localStorage.setItem('mathapp_v1', JSON.stringify(store)); }catch(e){} }
+var store = loadStore();
+
+/* ===== 狀態 ===== */
+var currentMode='choice', currentType=null, practiceMode='choice';
+var qIndex=0, score=0, correctCount=0, streak=0;
+var answered=false, cur=null, inputVal='';
+var timerId=null, remainingMs=0;
+var roundNewBadges=[];
+
+/* ===== 出題 ===== */
+function randInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+function mk(a,op,b){ return { a:a, op:op, b:b, answer: op==='+'?a+b:a-b }; }
+function pair(){ var big=randInt(2,20), small=randInt(1,big-1); return [big,small]; }
+function makeQuestion(){ return mk(randInt(CONFIG.min,CONFIG.max), Math.random()<0.5?'+':'-', randInt(CONFIG.min,CONFIG.max)); }
+function makeQuestionOfType(id){
+  var t;
+  switch(id){
+    case 'add_pp':       return mk(randInt(1,20),'+',randInt(1,20));
+    case 'add_nn':       return mk(-randInt(1,20),'+',-randInt(1,20));
+    case 'add_posbig':   t=pair(); return Math.random()<.5 ? mk(t[0],'+',-t[1]) : mk(-t[1],'+',t[0]);
+    case 'add_negbig':   t=pair(); return Math.random()<.5 ? mk(-t[0],'+',t[1]) : mk(t[1],'+',-t[0]);
+    case 'sub_pp_big':   t=pair(); return mk(t[0],'-',t[1]);
+    case 'sub_pp_small': t=pair(); return mk(t[1],'-',t[0]);
+    case 'sub_pn':       return mk(randInt(1,20),'-',-randInt(1,20));
+    case 'sub_np':       return mk(-randInt(1,20),'-',randInt(1,20));
+    case 'sub_nn_big':   t=pair(); return mk(-t[0],'-',-t[1]);
+    case 'sub_nn_small': t=pair(); return mk(-t[1],'-',-t[0]);
+    default:             return makeQuestion();
+  }
+}
+function fmt(n){ return n<0 ? '('+n+')' : ''+n; }
 function questionText(q, showAnswer){
-  const ans = showAnswer ? q.answer : '<span class="blank">?</span>';
-  return `${fmt(q.a)} ${q.op} ${fmt(q.b)} = ${ans}`;
+  var ans = showAnswer ? q.answer : '<span class="blank">?</span>';
+  return fmt(q.a)+' '+q.op+' '+fmt(q.b)+' = '+ans;
+}
+function shuffle(arr){ return arr.sort(function(){ return Math.random()-0.5; }); }
+
+/* ===== 診斷型誘答 ===== */
+function misconceptionList(q){
+  var a=q.a, op=q.op, b=q.b, ans=q.answer;
+  var absSum=Math.abs(a)+Math.abs(b), c=[];
+  function add(v,tag){ c.push({v:v,tag:tag}); }
+  if(op==='-'){
+    if(b<0) add(a+b,'減一個負數要變成加,你可能忘了變號');
+    else    add(a+b,'你可能把減號看成了加號');
+  } else { add(a-b,'你可能把加號看成了減號'); }
+  add(-ans,'數字算對了,但正負號取相反');
+  add(absSum,'忽略負號,把兩個數字直接相加');
+  add(-absSum,'忽略負號相加,又多帶了一個負號');
+  add(Math.abs(a)-Math.abs(b),'只把絕對值相減,沒判斷正負號');
+  add(b-a,'把兩個數字的位置弄反了');
+  var seen={}; seen[ans]=true; var out=[];
+  for(var i=0;i<c.length;i++){ if(seen[c[i].v])continue; seen[c[i].v]=true; out.push(c[i]); }
+  return out;
+}
+function buildChoices(q){
+  var ans=q.answer, list=misconceptionList(q), picked=list.slice(0,3);
+  var seen={}; seen[ans]=true; picked.forEach(function(p){ seen[p.v]=true; });
+  var k=1;
+  while(picked.length<3){
+    [ans+k,ans-k].forEach(function(v){ if(picked.length<3 && !seen[v]){ seen[v]=true; picked.push({v:v,tag:null}); } });
+    k++;
+  }
+  var opts=[{v:ans,tag:null,correct:true}];
+  picked.forEach(function(p){ opts.push({v:p.v,tag:p.tag,correct:false}); });
+  return opts;
+}
+function diagnose(q, val){
+  var list=misconceptionList(q);
+  for(var i=0;i<list.length;i++){ if(list[i].v===val) return list[i].tag; }
+  return null;
 }
 
-/* =========================================================
-   流程控制
-========================================================= */
-function show(id){ ['home','game','result'].forEach(s=>document.getElementById(s).classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); }
+/* ===== 音效 (WebAudio,可靜音) ===== */
+var audioCtx=null;
+function ensureAudio(){
+  if(!audioCtx){ try{ audioCtx=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} }
+  if(audioCtx && audioCtx.state==='suspended'){ audioCtx.resume(); }
+}
+function tone(freq, start, dur, type){
+  if(!audioCtx) return;
+  var o=audioCtx.createOscillator(), g=audioCtx.createGain();
+  o.type=type||'sine'; o.frequency.value=freq;
+  o.connect(g); g.connect(audioCtx.destination);
+  var t=audioCtx.currentTime+start;
+  g.gain.setValueAtTime(0.0001,t);
+  g.gain.exponentialRampToValueAtTime(0.25,t+0.01);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  o.start(t); o.stop(t+dur+0.02);
+}
+function playCorrect(){ if(store.muted||!audioCtx)return; tone(660,0,0.12); tone(880,0.1,0.14); }
+function playWrong(){ if(store.muted||!audioCtx)return; tone(196,0,0.18,'sawtooth'); tone(150,0.12,0.2,'sawtooth'); }
+function playBadge(){ if(store.muted||!audioCtx)return; [523,659,784,1047].forEach(function(f,i){ tone(f,i*0.09,0.16); }); }
+function toggleMute(){ store.muted=!store.muted; saveStore(); document.getElementById('muteBtn').textContent = store.muted?'🔇':'🔊'; }
 
-function startGame(mode){
-  currentMode = mode;
-  qIndex = 0; score = 0; correctCount = 0;
-  document.getElementById('qTotal').textContent = CONFIG.total;
+/* ===== 徽章 ===== */
+function awardBadge(id){
+  if(store.badges[id]) return;
+  store.badges[id]=true; saveStore();
+  roundNewBadges.push(id);
+  showToast('🏆 獲得徽章:'+badgeName(id));
+  playBadge();
+  renderHomeBadges();
+}
+function showToast(text){
+  var wrap=document.getElementById('toastWrap');
+  var t=document.createElement('div'); t.className='toast'; t.textContent=text;
+  wrap.appendChild(t);
+  setTimeout(function(){ t.style.transition='opacity .4s'; t.style.opacity='0'; setTimeout(function(){ if(t.parentNode) t.parentNode.removeChild(t); },420); }, 2400);
+}
+
+/* ===== 計分 ===== */
+function computeGain(streakAfter, remainingSec){
+  var streakBonus=Math.min((streakAfter-1)*2, 10);
+  var speedBonus=Math.max(0, Math.min(remainingSec, 15));
+  return { base:CONFIG.base, streak:streakBonus, speed:speedBonus, total:CONFIG.base+streakBonus+speedBonus };
+}
+function remainingSecNow(){ return Math.max(0, Math.min(15, Math.ceil(remainingMs/1000))); }
+
+/* ===== 計時器 ===== */
+function startTimer(){
+  stopTimer();
+  remainingMs=CONFIG.qtimeMs;
+  updateTimerUI();
+  timerId=setInterval(tick, 100);
+}
+function stopTimer(){ if(timerId){ clearInterval(timerId); timerId=null; } }
+function tick(){
+  remainingMs-=100;
+  if(remainingMs<=0){ remainingMs=0; updateTimerUI(); stopTimer(); timeUp(); }
+  else updateTimerUI();
+}
+function updateTimerUI(){
+  var pct=remainingMs/CONFIG.qtimeMs*100;
+  var sec=Math.ceil(remainingMs/1000);
+  document.getElementById('timerBar').style.width=pct+'%';
+  document.getElementById('timerSec').textContent=sec;
+  var low = pct<=33;
+  document.getElementById('timerWrap').classList.toggle('low', low);
+  document.getElementById('timerSec').classList.toggle('low', low);
+}
+function timeUp(){
+  if(answered) return;
+  answered=true;
+  streak=0; updateStreakUI();
+  // 停用作答
+  document.querySelectorAll('.choice').forEach(function(b){ b.disabled=true; });
+  document.getElementById('submitBtn').disabled=true;
+  var fb=document.getElementById('feedback');
+  fb.textContent='⏰ 時間到!'; fb.className='feedback bad';
+  playWrong();
+  setTimeout(nextQuestion, 850);
+}
+
+/* ===== 畫面切換 ===== */
+function show(id){
+  ['home','typePicker','game','result'].forEach(function(s){ document.getElementById(s).classList.add('hidden'); });
+  document.getElementById(id).classList.remove('hidden');
+}
+function goHome(){ stopTimer(); renderHome(); show('home'); }
+
+/* ===== 首頁渲染 ===== */
+function renderHome(){
+  document.getElementById('hsBest').textContent=store.bestScore;
+  document.getElementById('hsTotal').textContent=store.totalCorrect;
+  document.getElementById('muteBtn').textContent = store.muted?'🔇':'🔊';
+  renderHomeBadges();
+}
+function renderHomeBadges(){
+  var wrap=document.getElementById('homeBadges');
+  if(!wrap) return;
+  wrap.innerHTML='';
+  BADGES.forEach(function(bd){
+    var on=!!store.badges[bd.id];
+    var d=document.createElement('div');
+    d.className='badge '+(on?'on':'off');
+    d.innerHTML='<div class="ic">'+bd.ic+'</div><div class="nm">'+bd.nm+'</div>';
+    wrap.appendChild(d);
+  });
+}
+
+/* ===== 題型選單 ===== */
+function openTypePicker(){ ensureAudio(); renderTypeList(); setPracticeMode(practiceMode); show('typePicker'); }
+function setPracticeMode(m){
+  practiceMode=m;
+  document.getElementById('segChoice').classList.toggle('active', m==='choice');
+  document.getElementById('segInput').classList.toggle('active', m==='input');
+}
+function renderTypeList(){
+  var list=document.getElementById('typeList'); list.innerHTML='';
+  CATS.forEach(function(cat){
+    var btn=document.createElement('button'); btn.className='type-item';
+    btn.innerHTML='<span class="t-label">'+cat.label+'</span><span class="t-ex">'+cat.ex+'</span>';
+    btn.onclick=function(){ startGame(practiceMode, cat.id); };
+    list.appendChild(btn);
+  });
+}
+
+/* ===== 遊戲流程 ===== */
+function startGame(mode, type){
+  ensureAudio();
+  currentMode=mode; currentType=type||null;
+  qIndex=0; score=0; correctCount=0; streak=0; roundNewBadges=[];
+  document.getElementById('qTotal').textContent=CONFIG.total;
+  updateStreakUI();
   show('game');
   loadQuestion();
 }
+function replay(){ startGame(currentMode, currentType); }
 
-function goHome(){ show('home'); }
+function updateStreakUI(){
+  var pill=document.getElementById('streakPill');
+  if(streak>=2){
+    document.getElementById('streakNum').textContent=streak;
+    pill.classList.remove('hidden');
+    pill.classList.remove('bump'); void pill.offsetWidth; pill.classList.add('bump');
+  } else {
+    pill.classList.add('hidden');
+  }
+}
 
 function loadQuestion(){
-  answered = false;
-  inputVal = '';
-  cur = makeQuestion();
+  answered=false; inputVal='';
+  cur = currentType ? makeQuestionOfType(currentType) : makeQuestion();
 
-  // 頂列
-  document.getElementById('qNum').textContent = qIndex + 1;
-  document.getElementById('score').textContent = score;
-  document.getElementById('bar').style.width = (qIndex/CONFIG.total*100) + '%';
+  document.getElementById('qNum').textContent=qIndex+1;
+  document.getElementById('score').textContent=score;
+  document.getElementById('bar').style.width=(qIndex/CONFIG.total*100)+'%';
+  document.getElementById('question').innerHTML=questionText(cur,false);
 
-  // 題目
-  document.getElementById('question').innerHTML = questionText(cur, false);
+  var tl=document.getElementById('typeLabel');
+  if(currentType){ tl.textContent='題型:'+catLabel(currentType); tl.classList.remove('hidden'); }
+  else tl.classList.add('hidden');
 
-  // 清回饋
-  document.getElementById('feedback').textContent = '';
-  document.getElementById('feedback').className = 'feedback';
-  document.getElementById('explain').textContent = '';
+  document.getElementById('feedback').textContent='';
+  document.getElementById('feedback').className='feedback';
+  document.getElementById('gainInfo').textContent='';
+  document.getElementById('explain').textContent='';
   document.getElementById('nextBtn').classList.add('hidden');
 
-  if(currentMode === 'choice'){
+  if(currentMode==='choice'){
     document.getElementById('choiceArea').classList.remove('hidden');
     document.getElementById('inputArea').classList.add('hidden');
     renderChoices();
   } else {
     document.getElementById('choiceArea').classList.add('hidden');
     document.getElementById('inputArea').classList.remove('hidden');
-    // 重新顯示鍵盤與送出鍵(上一題作答後會被收起)
     document.getElementById('pad').classList.remove('hidden');
     document.getElementById('submitBtn').classList.remove('hidden');
-    document.getElementById('submitBtn').disabled = false;
-    renderPad();
-    updateAnswerBox();
+    document.getElementById('submitBtn').disabled=false;
+    renderPad(); updateAnswerBox();
   }
+  startTimer();
 }
 
-/* =========================================================
-   選擇模式
-========================================================= */
+/* ===== 選擇模式 ===== */
 function renderChoices(){
-  // 產生 3 個不重複的誘答選項 (靠近正解)
-  const opts = new Set([cur.answer]);
-  while(opts.size < 4){
-    const delta = randInt(-5, 5);
-    if(delta !== 0) opts.add(cur.answer + delta);
-  }
-  const arr = [...opts].sort(()=>Math.random()-0.5);
-
-  const area = document.getElementById('choiceArea');
-  area.innerHTML = '';
-  arr.forEach(v=>{
-    const btn = document.createElement('button');
-    btn.className = 'choice';
-    btn.textContent = v;
-    btn.onclick = ()=>pickChoice(btn, v);
+  var opts=shuffle(buildChoices(cur));
+  var area=document.getElementById('choiceArea'); area.innerHTML='';
+  opts.forEach(function(opt){
+    var btn=document.createElement('button'); btn.className='choice'; btn.textContent=opt.v;
+    btn.onclick=function(){ pickChoice(btn,opt); };
     area.appendChild(btn);
   });
 }
-
-function pickChoice(btn, val){
+function pickChoice(btn, opt){
   if(answered) return;
-  answered = true;
-  const correct = val === cur.answer;
-  // 標記所有按鈕
-  document.querySelectorAll('.choice').forEach(b=>{
-    b.disabled = true;
-    if(parseInt(b.textContent,10) === cur.answer) b.classList.add('correct');
+  answered=true; stopTimer();
+  var rs=remainingSecNow();
+  document.querySelectorAll('.choice').forEach(function(b){
+    b.disabled=true;
+    if(parseInt(b.textContent,10)===cur.answer) b.classList.add('correct');
   });
-  if(!correct) btn.classList.add('wrong');
-  finishQuestion(correct);
+  if(!opt.correct) btn.classList.add('wrong');
+  finishQuestion(opt.correct, opt.v, rs);
 }
 
-/* =========================================================
-   挑戰模式 (自訂數字鍵盤)
-========================================================= */
+/* ===== 挑戰模式 ===== */
 function renderPad(){
-  const keys = ['1','2','3','4','5','6','7','8','9','±','0','⌫'];
-  const pad = document.getElementById('pad');
-  pad.innerHTML = '';
-  keys.forEach(k=>{
-    const b = document.createElement('button');
-    b.className = 'key';
-    if(k === '±') b.classList.add('key-sign');
-    if(k === '⌫') b.classList.add('key-del');
-    b.textContent = k;
-    b.onclick = ()=>pressKey(k);
+  var keys=['1','2','3','4','5','6','7','8','9','±','0','⌫'];
+  var pad=document.getElementById('pad'); pad.innerHTML='';
+  keys.forEach(function(k){
+    var b=document.createElement('button'); b.className='key';
+    if(k==='±') b.classList.add('key-sign');
+    if(k==='⌫') b.classList.add('key-del');
+    b.textContent=k; b.onclick=function(){ pressKey(k); };
     pad.appendChild(b);
   });
 }
-
 function pressKey(k){
   if(answered) return;
-  if(k === '⌫'){
-    inputVal = inputVal.slice(0, -1);
-  } else if(k === '±'){
-    // 切換正負號
-    if(inputVal.startsWith('-')) inputVal = inputVal.slice(1);
-    else inputVal = '-' + inputVal;
-  } else {
-    if(inputVal.replace('-','').length < 4) inputVal += k; // 限制長度
-  }
+  if(k==='⌫'){ inputVal=inputVal.slice(0,-1); }
+  else if(k==='±'){ if(inputVal.charAt(0)==='-') inputVal=inputVal.slice(1); else inputVal='-'+inputVal; }
+  else { if(inputVal.replace('-','').length<4) inputVal+=k; }
   updateAnswerBox();
 }
-
 function updateAnswerBox(){
-  const box = document.getElementById('answerBox');
-  if(inputVal === '' || inputVal === '-'){
-    box.textContent = inputVal === '-' ? '-' : '輸入答案';
-    box.classList.toggle('empty', inputVal === '');
-  } else {
-    box.textContent = inputVal;
-    box.classList.remove('empty');
-  }
+  var box=document.getElementById('answerBox');
+  if(inputVal===''||inputVal==='-'){ box.textContent= inputVal==='-'?'-':'輸入答案'; box.classList.toggle('empty', inputVal===''); }
+  else { box.textContent=inputVal; box.classList.remove('empty'); }
 }
-
 function submitInput(){
   if(answered) return;
-  if(inputVal === '' || inputVal === '-') return; // 還沒輸入
-  answered = true;
-  document.getElementById('submitBtn').disabled = true;
-  const correct = parseInt(inputVal, 10) === cur.answer;
-  finishQuestion(correct);
+  if(inputVal===''||inputVal==='-') return;
+  answered=true; stopTimer();
+  var rs=remainingSecNow();
+  document.getElementById('submitBtn').disabled=true;
+  var val=parseInt(inputVal,10);
+  finishQuestion(val===cur.answer, val, rs);
 }
 
-/* =========================================================
-   觀念解說產生器 (答錯時用)
-   邏輯:1) 減法先轉成加法  2) 同號/異號規則  3) 生活化直覺
-========================================================= */
-function explainHTML(q){
-  const { a, op, b, answer } = q;
-  let x = a, y = b;          // 最後要相加的兩個數
-  const steps = [];
-  const head = `<div class="teach-title">想一想 🤔</div>`;
-
-  // 第一步:減法 → 加上相反數
-  if(op === '-'){
-    y = -b;
-    steps.push(`<p><b>第一步</b>:減一個數,等於<b>加上它的相反數</b>。<br>` +
-               `所以 ${fmt(a)} − ${fmt(b)} 改寫成 ${fmt(a)} + ${fmt(y)}。</p>`);
+/* ===== 觀念解說 ===== */
+function explainHTML(q, diagTag){
+  var a=q.a, op=q.op, b=q.b, answer=q.answer, x=a, y=b, steps=[];
+  var head='<div class="teach-title">想一想 🤔</div>';
+  var diagHTML = diagTag ? '<p class="teach-diag">⚠️ 你的盲點:'+diagTag+'</p>' : '';
+  if(op==='-'){
+    y=-b;
+    steps.push('<p><b>第一步</b>:減一個數,等於<b>加上它的相反數</b>。<br>所以 '+fmt(a)+' − '+fmt(b)+' 改寫成 '+fmt(a)+' + '+fmt(y)+'。</p>');
   }
+  var ax=Math.abs(x), ay=Math.abs(y), rule='', tip='';
+  if(x===0||y===0){
+    rule='<p>其中一個是 0,加 0 不改變另一個數,所以答案是 <b>'+answer+'</b>。</p>';
+  } else if((x>0)===(y>0)){
+    if(x>0){
+      rule='<p><b>同號相加</b>:兩個都是正數,直接相加 '+x+' + '+y+' = <b>'+answer+'</b>。</p>';
+      tip='先有 '+x+' 元,再賺 '+y+' 元,共 '+answer+' 元。';
+    } else {
+      rule='<p><b>同號相加</b>:兩個都是負數,把數字部分相加 '+ax+' + '+ay+' = '+(ax+ay)+',再補上負號,所以是 <b>'+answer+'</b>。</p>';
+      tip='先欠 '+ax+' 元,再欠 '+ay+' 元,總共欠 '+(ax+ay)+' 元(就是 '+answer+')。';
+    }
+  } else {
+    var big=Math.max(ax,ay), small=Math.min(ax,ay), bigIsPos=(ax>ay?x:y)>0;
+    rule='<p><b>異號相加</b>(一正一負):用<b>絕對值大的減小的</b> → '+big+' − '+small+' = '+(big-small)+';<br>因為 '+big+' 比較大、它是'+(bigIsPos?'正':'負')+'的,結果就取'+(bigIsPos?'正':'負')+'號 = <b>'+answer+'</b>。</p>';
+    var pos=x>0?x:y, negAbs=x<0?ax:ay;
+    tip = pos>=negAbs
+      ? '有 '+pos+' 元、欠 '+negAbs+' 元,還完還剩 '+(pos-negAbs)+' 元('+answer+')。'
+      : '有 '+pos+' 元、欠 '+negAbs+' 元,還不夠,還欠 '+(negAbs-pos)+' 元('+answer+')。';
+  }
+  steps.push(rule);
+  var tipHTML = tip ? '<p class="teach-tip">💡 '+tip+'</p>' : '';
+  return '<div class="teach">'+head+diagHTML+steps.join('')+tipHTML+'</div>';
+}
 
-  const ax = Math.abs(x), ay = Math.abs(y);
-  let rule = '', tip = '';
+/* ===== 作答後:回饋 + 計分 + 徽章 ===== */
+function finishQuestion(correct, studentVal, remainingSec){
+  var fb=document.getElementById('feedback'), ex=document.getElementById('explain'), gi=document.getElementById('gainInfo');
+  if(correct){
+    streak++;
+    var g=computeGain(streak, remainingSec);
+    score+=g.total;
+    correctCount++;
+    store.totalCorrect++;
+    if(streak>store.longestStreak) store.longestStreak=streak;
+    saveStore();
+    fb.innerHTML='答對了! <span class="gain">+'+g.total+'</span> 👍';
+    fb.className='feedback good';
+    gi.textContent='基本 '+g.base+(g.speed?' ・速度 +'+g.speed:'')+(g.streak?' ・連對 +'+g.streak:'');
+    playCorrect();
+    // 徽章
+    if(streak>=5) awardBadge('streak5');
+    if(streak>=10) awardBadge('streak10');
+    if(remainingSec>=12) awardBadge('speedy');
+    if(store.totalCorrect>=100) awardBadge('century');
+  } else {
+    streak=0;
+    fb.innerHTML='答錯了,正確答案是 <b>'+cur.answer+'</b>';
+    fb.className='feedback bad';
+    ex.innerHTML=explainHTML(cur, diagnose(cur, studentVal));
+    playWrong();
+  }
+  updateStreakUI();
+  document.getElementById('score').textContent=score;
+  if(currentMode==='input'){
+    document.getElementById('pad').classList.add('hidden');
+    document.getElementById('submitBtn').classList.add('hidden');
+  }
+  document.getElementById('question').innerHTML=questionText(cur,true);
+  document.getElementById('nextBtn').classList.remove('hidden');
+}
 
-  if(x === 0 || y === 0){
-    rule = `<p>其中一個是 0,加 0 不改變另一個數,所以答案是 <b>${answer}</b>。</p>`;
-  } else if((x > 0) === (y > 
+function nextQuestion(){
+  qIndex++;
+  if(qIndex>=CONFIG.total) showResult();
+  else loadQuestion();
+}
+
+/* ===== 結算 ===== */
+function showResult(){
+  stopTimer();
+  show('result');
+  var acc=Math.round(correctCount/CONFIG.total*100);
+  document.getElementById('rScore').textContent=score;
+  document.getElementById('rCorrect').textContent=correctCount+'/'+CONFIG.total;
+  document.getElementById('rAcc').textContent=acc+'%';
+  document.getElementById('resultEmoji').textContent = acc===100?'🏆':acc>=70?'🎉':acc>=40?'💪':'📚';
+  var rt=document.getElementById('resultType');
+  if(currentType){ rt.textContent='題型:'+catLabel(currentType); rt.classList.remove('hidden'); }
+  else rt.classList.add('hidden');
+
+  // 結算階段徽章
+  if(store.totalCorrect>0 && !store.badges['first_clear']) awardBadge('first_clear');
+  if(correctCount===CONFIG.total) awardBadge('perfect');
+
+  // 更新最佳分數
+  if(score>store.bestScore){ store.bestScore=score; saveStore(); }
+
+  // 本局新徽章
+  var nb=document.getElementById('newBadges');
+  if(roundNewBadges.length){
+    var html='<h4>🎖️ 本局獲得徽章</h4>';
+    roundNewBadges.forEach(function(id){
+      for(var i=0;i<BADGES.length;i++){ if(BADGES[i].id===id){ html+='<span style="margin-right:10px">'+BADGES[i].ic+' '+BADGES[i].nm+'</span>'; } }
+    });
+    nb.innerHTML=html; nb.classList.remove('hidden');
+  } else nb.classList.add('hidden');
+}
+
+/* ===== 啟動 ===== */
+renderHome();
+</script>
+</body>
+</html>
