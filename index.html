@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>正負數加減練習</title>
+
+<!-- ===== 加到主畫面 / 像 App 一樣 ===== -->
+<meta name="theme-color" content="#4f7cff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="正負數練習">
+<!-- 手機主畫面圖示 (內嵌 SVG,藍底白色 ±) -->
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Crect width='180' height='180' rx='40' fill='%234f7cff'/%3E%3Ctext x='90' y='118' font-size='100' font-weight='bold' text-anchor='middle' fill='white' font-family='sans-serif'%3E%C2%B1%3C/text%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='64' height='64' rx='14' fill='%234f7cff'/%3E%3Ctext x='32' y='44' font-size='38' font-weight='bold' text-anchor='middle' fill='white' font-family='sans-serif'%3E%C2%B1%3C/text%3E%3C/svg%3E">
+<style>
+  /* ===== 基本設定 ===== */
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  :root{
+    --bg:#f3f6fb; --card:#ffffff; --ink:#1f2a44; --muted:#7b8794;
+    --primary:#4f7cff; --primary-d:#3b63e0;
+    --good:#2bbd7e; --bad:#ef5d6b; --warn:#f2b134;
+    --shadow:0 6px 20px rgba(40,60,120,.10);
+  }
+  html,body{margin:0;height:100%;}
+  body{
+    font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+    background:var(--bg); color:var(--ink);
+    display:flex; justify-content:center; align-items:flex-start;
+    min-height:100%; padding:16px;
+  }
+  .app{width:100%; max-width:440px;}
+  .card{
+    background:var(--card); border-radius:20px; box-shadow:var(--shadow);
+    padding:22px; margin-bottom:14px;
+  }
+  h1{font-size:22px; margin:0 0 4px;}
+  .sub{color:var(--muted); font-size:14px; margin:0;}
+  .hidden{display:none !important;}
+
+  /* ===== 按鈕 ===== */
+  .btn{
+    display:block; width:100%; border:none; border-radius:14px;
+    padding:16px; font-size:18px; font-weight:700; cursor:pointer;
+    margin-top:12px; transition:transform .05s, background .15s;
+  }
+  .btn:active{transform:scale(.98);}
+  .btn-primary{background:var(--primary); color:#fff;}
+  .btn-primary:active{background:var(--primary-d);}
+  .btn-ghost{background:#eef2fb; color:var(--ink);}
+
+  /* ===== 首頁模式卡 ===== */
+  .mode{
+    text-align:left; display:flex; align-items:center; gap:14px;
+    background:#eef2fb; border-radius:16px; padding:18px; margin-top:14px;
+    cursor:pointer; border:2px solid transparent; transition:.15s;
+  }
+  .mode:active{transform:scale(.99);}
+  .mode .emoji{font-size:30px;}
+  .mode h3{margin:0; font-size:18px;}
+  .mode p{margin:2px 0 0; font-size:13px; color:var(--muted);}
+
+  /* ===== 進行中頂列 ===== */
+  .topbar{display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;}
+  .pill{background:#eef2fb; border-radius:999px; padding:8px 14px; font-size:14px; font-weight:700;}
+  .pill .lab{color:var(--muted); font-weight:500; margin-right:4px;}
+  .progress{height:8px; background:#e6ebf5; border-radius:99px; overflow:hidden; margin-bottom:18px;}
+  .progress > i{display:block; height:100%; background:var(--primary); width:0; transition:width .3s;}
+
+  /* ===== 題目 ===== */
+  .question{
+    text-align:center; font-size:44px; font-weight:800; letter-spacing:1px;
+    padding:24px 8px; margin:6px 0 8px;
+  }
+  .question .blank{color:var(--primary);}
+
+  /* ===== 選擇題選項 ===== */
+  .choices{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  .choice{
+    border:none; background:#eef2fb; color:var(--ink);
+    border-radius:14px; padding:20px; font-size:26px; font-weight:800; cursor:pointer;
+    transition:.12s;
+  }
+  .choice:active{transform:scale(.97);}
+  .choice.correct{background:var(--good); color:#fff;}
+  .choice.wrong{background:var(--bad); color:#fff;}
+  .choice:disabled{cursor:default;}
+
+  /* ===== 挑戰模式輸入 ===== */
+  .answer-box{
+    text-align:center; font-size:40px; font-weight:800; min-height:56px;
+    border-bottom:3px solid #d8e0f0; margin:0 8px 14px; padding-bottom:6px;
+    color:var(--ink);
+  }
+  .answer-box.empty{color:#c2cbdd;}
+  .pad{display:grid; grid-template-columns:repeat(3,1fr); gap:10px;}
+  .key{
+    border:none; background:#eef2fb; border-radius:14px; padding:18px;
+    font-size:24px; font-weight:800; cursor:pointer;
+  }
+  .key:active{transform:scale(.96);}
+  .key.act{background:#dde6ff;}
+  .key-sign{color:var(--primary);}
+  .key-del{color:var(--bad);}
+
+  /* ===== 回饋 ===== */
+  .feedback{text-align:center; font-size:18px; font-weight:700; min-height:26px; margin:14px 0 2px;}
+  .feedback.good{color:var(--good);}
+  .feedback.bad{color:var(--bad);}
+  .explain{text-align:center; color:var(--muted); font-size:15px; min-height:20px;}
+
+  /* ===== 結算 ===== */
+  .result-big{text-align:center; font-size:58px; font-weight:800; margin:8px 0;}
+  .stat-row{display:flex; justify-content:space-around; margin:18px 0;}
+  .stat{text-align:center;}
+  .stat b{font-size:26px; display:block;}
+  .stat span{color:var(--muted); font-size:13px;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ====== 首頁 ====== -->
+  <section id="home" class="card">
+    <h1>正負數加減練習 ➕➖</h1>
+    <p class="sub">選一個模式開始吧!</p>
+
+    <div class="mode" onclick="startGame('choice')">
+      <div class="emoji">🟦</div>
+      <div>
+        <h3>選擇模式</h3>
+        <p>看題目,從四個答案裡點正確的</p>
+      </div>
+    </div>
+
+    <div class="mode" onclick="startGame('input')">
+      <div class="emoji">🏆</div>
+      <div>
+        <h3>挑戰關</h3>
+        <p>自己用鍵盤算出答案打進去</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====== 遊戲中 ====== -->
+  <section id="game" class="card hidden">
+    <div class="topbar">
+      <button class="pill" style="border:none;cursor:pointer" onclick="goHome()">← 返回</button>
+      <div class="pill"><span class="lab">第</span><span id="qNum">1</span>/<span id="qTotal">10</span></div>
+      <div class="pill"><span class="lab">分數</span><span id="score">0</span></div>
+    </div>
+    <div class="progress"><i id="bar"></i></div>
+
+    <div class="question" id="question">- 7 + 3 = <span class="blank">?</span></div>
+
+    <!-- 選擇題 -->
+    <div id="choiceArea" class="choices"></div>
+
+    <!-- 挑戰輸入 -->
+    <div id="inputArea" class="hidden">
+      <div class="answer-box empty" id="answerBox">輸入答案</div>
+      <div class="pad" id="pad"></div>
+      <button class="btn btn-primary" id="submitBtn" onclick="submitInput()">送出</button>
+    </div>
+
+    <div class="feedback" id="feedback"></div>
+    <div class="explain" id="explain"></div>
+    <button class="btn btn-ghost hidden" id="nextBtn" onclick="nextQuestion()">下一題 →</button>
+  </section>
+
+  <!-- ====== 結算 ====== -->
+  <section id="result" class="card hidden">
+    <h1 style="text-align:center">完成!</h1>
+    <div class="result-big" id="resultEmoji">🎉</div>
+    <div class="stat-row">
+      <div class="stat"><b id="rScore">0</b><span>得分</span></div>
+      <div class="stat"><b id="rCorrect">0</b><span>答對題數</span></div>
+      <div class="stat"><b id="rAcc">0%</b><span>正確率</span></div>
+    </div>
+    <button class="btn btn-primary" onclick="startGame(currentMode)">再玩一次</button>
+    <button class="btn btn-ghost" onclick="goHome()">回首頁</button>
+  </section>
+
+</div>
+
+<script>
+/* =========================================================
+   設定區 (之後要調難度、題數就改這裡)
+========================================================= */
+const CONFIG = {
+  total: 10,        // 每回合題數
+  min: -20,         // 數字最小值
+  max: 20,          // 數字最大值
+  scorePerQ: 10,    // 每題分數
+};
+
+/* =========================================================
+   狀態
+========================================================= */
+let currentMode = 'choice';
+let qIndex = 0;       // 第幾題 (0-based)
+let score = 0;
+let correctCount = 0;
+let answered = false; // 本題是否已作答
+let cur = null;       // 目前題目 {a, op, b, answer}
+let inputVal = '';    // 挑戰模式輸入字串
+
+/* =========================================================
+   出題:隨機正負加減
+========================================================= */
+function randInt(min, max){ return Math.floor(Math.random()*(max-min+1))+min; }
+
+function makeQuestion(){
+  const a = randInt(CONFIG.min, CONFIG.max);
+  const b = randInt(CONFIG.min, CONFIG.max);
+  const op = Math.random() < 0.5 ? '+' : '-';
+  const answer = op === '+' ? a + b : a - b;
+  return { a, op, b, answer };
+}
+
+// 把負數顯示成 (-7) 比較清楚;正數就直接顯示
+function fmt(n){ return n < 0 ? '('+n+')' : ''+n; }
+
+function questionText(q, showAnswer){
+  const ans = showAnswer ? q.answer : '<span class="blank">?</span>';
+  return `${fmt(q.a)} ${q.op} ${fmt(q.b)} = ${ans}`;
+}
+
+/* =========================================================
+   流程控制
+========================================================= */
+function show(id){ ['home','game','result'].forEach(s=>document.getElementById(s).classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); }
+
+function startGame(mode){
+  currentMode = mode;
+  qIndex = 0; score = 0; correctCount = 0;
+  document.getElementById('qTotal').textContent = CONFIG.total;
+  show('game');
+  loadQuestion();
+}
+
+function goHome(){ show('home'); }
+
+function loadQuestion(){
+  answered = false;
+  inputVal = '';
+  cur = makeQuestion();
+
+  // 頂列
+  document.getElementById('qNum').textContent = qIndex + 1;
+  document.getElementById('score').textContent = score;
+  document.getElementById('bar').style.width = (qIndex/CONFIG.total*100) + '%';
+
+  // 題目
+  document.getElementById('question').innerHTML = questionText(cur, false);
+
+  // 清回饋
+  document.getElementById('feedback').textContent = '';
+  document.getElementById('feedback').className = 'feedback';
+  document.getElementById('explain').textContent = '';
+  document.getElementById('nextBtn').classList.add('hidden');
+
+  if(currentMode === 'choice'){
+    document.getElementById('choiceArea').classList.remove('hidden');
+    document.getElementById('inputArea').classList.add('hidden');
+    renderChoices();
+  } else {
+    document.getElementById('choiceArea').classList.add('hidden');
+    document.getElementById('inputArea').classList.remove('hidden');
+    document.getElementById('submitBtn').disabled = false;
+    renderPad();
+    updateAnswerBox();
+  }
+}
+
+/* =========================================================
+   選擇模式
+========================================================= */
+function renderChoices(){
+  // 產生 3 個不重複的誘答選項 (靠近正解)
+  const opts = new Set([cur.answer]);
+  while(opts.size < 4){
+    const delta = randInt(-5, 5);
+    if(delta !== 0) opts.add(cur.answer + delta);
+  }
+  const arr = [...opts].sort(()=>Math.random()-0.5);
+
+  const area = document.getElementById('choiceArea');
+  area.innerHTML = '';
+  arr.forEach(v=>{
+    const btn = document.createElement('button');
+    btn.className = 'choice';
+    btn.textContent = v;
+    btn.onclick = ()=>pickChoice(btn, v);
+    area.appendChild(btn);
+  });
+}
+
+function pickChoice(btn, val){
+  if(answered) return;
+  answered = true;
+  const correct = val === cur.answer;
+  // 標記所有按鈕
+  document.querySelectorAll('.choice').forEach(b=>{
+    b.disabled = true;
+    if(parseInt(b.textContent,10) === cur.answer) b.classList.add('correct');
+  });
+  if(!correct) btn.classList.add('wrong');
+  finishQuestion(correct);
+}
+
+/* =========================================================
+   挑戰模式 (自訂數字鍵盤)
+========================================================= */
+function renderPad(){
+  const keys = ['1','2','3','4','5','6','7','8','9','±','0','⌫'];
+  const pad = document.getElementById('pad');
+  pad.innerHTML = '';
+  keys.forEach(k=>{
+    const b = document.createElement('button');
+    b.className = 'key';
+    if(k === '±') b.classList.add('key-sign');
+    if(k === '⌫') b.classList.add('key-del');
+    b.textContent = k;
+    b.onclick = ()=>pressKey(k);
+    pad.appendChild(b);
+  });
+}
+
+function pressKey(k){
+  if(answered) return;
+  if(k === '⌫'){
+    inputVal = inputVal.slice(0, -1);
+  } else if(k === '±'){
+    // 切換正負號
+    if(inputVal.startsWith('-')) inputVal = inputVal.slice(1);
+    else inputVal = '-' + inputVal;
+  } else {
+    if(inputVal.replace('-','').length < 4) inputVal += k; // 限制長度
+  }
+  updateAnswerBox();
+}
+
+function updateAnswerBox(){
+  const box = document.getElementById('answerBox');
+  if(inputVal === '' || inputVal === '-'){
+    box.textContent = inputVal === '-' ? '-' : '輸入答案';
+    box.classList.toggle('empty', inputVal === '');
+  } else {
+    box.textContent = inputVal;
+    box.classList.remove('empty');
+  }
+}
+
+function submitInput(){
+  if(answered) return;
+  if(inputVal === '' || inputVal === '-') return; // 還沒輸入
+  answered = true;
+  document.getElementById('submitBtn').disabled = true;
+  const correct = parseInt(inputVal, 10) === cur.answer;
+  finishQuestion(correct);
+}
+
+/* =========================================================
+   作答後共用:回饋 + 計分
+========================================================= */
+function finishQuestion(correct){
+  const fb = document.getElementById('feedback');
+  const ex = document.getElementById('explain');
+  if(correct){
+    score += CONFIG.scorePerQ;
+    correctCount++;
+    fb.textContent = '答對了! 👍';
+    fb.className = 'feedback good';
+  } else {
+    fb.textContent = '答錯了';
+    fb.className = 'feedback bad';
+    ex.innerHTML = '正確答案是 <b>' + cur.answer + '</b>　(' + questionText(cur, true) + ')';
+  }
+  document.getElementById('score').textContent = score;
+  // 顯示正解到題目
+  document.getElementById('question').innerHTML = questionText(cur, true);
+  document.getElementById('nextBtn').classList.remove('hidden');
+}
+
+function nextQuestion(){
+  qIndex++;
+  if(qIndex >= CONFIG.total){ showResult(); }
+  else loadQuestion();
+}
+
+/* =========================================================
+   結算
+========================================================= */
+function showResult(){
+  show('result');
+  const acc = Math.round(correctCount / CONFIG.total * 100);
+  document.getElementById('rScore').textContent = score;
+  document.getElementById('rCorrect').textContent = correctCount + '/' + CONFIG.total;
+  document.getElementById('rAcc').textContent = acc + '%';
+  document.getElementById('resultEmoji').textContent =
+    acc === 100 ? '🏆' : acc >= 70 ? '🎉' : acc >= 40 ? '💪' : '📚';
+}
+</script>
+</body>
+</html>
