@@ -71,7 +71,7 @@
   /* ===== 題目 ===== */
   .question{
     text-align:center; font-size:44px; font-weight:800; letter-spacing:1px;
-    padding:24px 8px; margin:6px 0 8px;
+    padding:16px 8px; margin:2px 0 8px;
   }
   .question .blank{color:var(--primary);}
 
@@ -79,7 +79,7 @@
   .choices{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
   .choice{
     border:none; background:#eef2fb; color:var(--ink);
-    border-radius:14px; padding:20px; font-size:26px; font-weight:800; cursor:pointer;
+    border-radius:14px; padding:16px; font-size:26px; font-weight:800; cursor:pointer;
     transition:.12s;
   }
   .choice:active{transform:scale(.97);}
@@ -108,7 +108,17 @@
   .feedback{text-align:center; font-size:18px; font-weight:700; min-height:26px; margin:14px 0 2px;}
   .feedback.good{color:var(--good);}
   .feedback.bad{color:var(--bad);}
-  .explain{text-align:center; color:var(--muted); font-size:15px; min-height:20px;}
+  .explain{min-height:8px;}
+  /* 答錯時的教學解說框 */
+  .teach{
+    text-align:left; background:#fff8e8; border:1px solid #f5e2b8;
+    border-radius:14px; padding:14px 16px; margin-top:8px;
+    font-size:15px; line-height:1.65; color:#5a4a2a;
+  }
+  .teach-title{font-weight:800; margin-bottom:4px; color:#c08a00;}
+  .teach p{margin:6px 0;}
+  .teach b{color:var(--ink);}
+  .teach-tip{background:#eef6ff; border-radius:10px; padding:9px 11px; color:#33506e; margin-top:10px !important;}
 
   /* ===== 結算 ===== */
   .result-big{text-align:center; font-size:58px; font-weight:800; margin:8px 0;}
@@ -268,6 +278,9 @@ function loadQuestion(){
   } else {
     document.getElementById('choiceArea').classList.add('hidden');
     document.getElementById('inputArea').classList.remove('hidden');
+    // 重新顯示鍵盤與送出鍵(上一題作答後會被收起)
+    document.getElementById('pad').classList.remove('hidden');
+    document.getElementById('submitBtn').classList.remove('hidden');
     document.getElementById('submitBtn').disabled = false;
     renderPad();
     updateAnswerBox();
@@ -363,45 +376,25 @@ function submitInput(){
 }
 
 /* =========================================================
-   作答後共用:回饋 + 計分
+   觀念解說產生器 (答錯時用)
+   邏輯:1) 減法先轉成加法  2) 同號/異號規則  3) 生活化直覺
 ========================================================= */
-function finishQuestion(correct){
-  const fb = document.getElementById('feedback');
-  const ex = document.getElementById('explain');
-  if(correct){
-    score += CONFIG.scorePerQ;
-    correctCount++;
-    fb.textContent = '答對了! 👍';
-    fb.className = 'feedback good';
-  } else {
-    fb.textContent = '答錯了';
-    fb.className = 'feedback bad';
-    ex.innerHTML = '正確答案是 <b>' + cur.answer + '</b>　(' + questionText(cur, true) + ')';
+function explainHTML(q){
+  const { a, op, b, answer } = q;
+  let x = a, y = b;          // 最後要相加的兩個數
+  const steps = [];
+  const head = `<div class="teach-title">想一想 🤔</div>`;
+
+  // 第一步:減法 → 加上相反數
+  if(op === '-'){
+    y = -b;
+    steps.push(`<p><b>第一步</b>:減一個數,等於<b>加上它的相反數</b>。<br>` +
+               `所以 ${fmt(a)} − ${fmt(b)} 改寫成 ${fmt(a)} + ${fmt(y)}。</p>`);
   }
-  document.getElementById('score').textContent = score;
-  // 顯示正解到題目
-  document.getElementById('question').innerHTML = questionText(cur, true);
-  document.getElementById('nextBtn').classList.remove('hidden');
-}
 
-function nextQuestion(){
-  qIndex++;
-  if(qIndex >= CONFIG.total){ showResult(); }
-  else loadQuestion();
-}
+  const ax = Math.abs(x), ay = Math.abs(y);
+  let rule = '', tip = '';
 
-/* =========================================================
-   結算
-========================================================= */
-function showResult(){
-  show('result');
-  const acc = Math.round(correctCount / CONFIG.total * 100);
-  document.getElementById('rScore').textContent = score;
-  document.getElementById('rCorrect').textContent = correctCount + '/' + CONFIG.total;
-  document.getElementById('rAcc').textContent = acc + '%';
-  document.getElementById('resultEmoji').textContent =
-    acc === 100 ? '🏆' : acc >= 70 ? '🎉' : acc >= 40 ? '💪' : '📚';
-}
-</script>
-</body>
-</html>
+  if(x === 0 || y === 0){
+    rule = `<p>其中一個是 0,加 0 不改變另一個數,所以答案是 <b>${answer}</b>。</p>`;
+  } else if((x > 0) === (y > 
